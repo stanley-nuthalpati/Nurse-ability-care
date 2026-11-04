@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
+import { EmailConfigurationError, sendWebsiteEmail } from '@/lib/email'
 
-const emailAddress = 'admin@nurseabilitycare.com.au'
+export const runtime = 'nodejs'
+
 const maxRequestBytes = 10_000
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -62,42 +64,30 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Please choose a valid appointment date.' }, { status: 400 })
   }
 
-  const serviceId = process.env.EMAILJS_SERVICE_ID
-  const templateId = process.env.EMAILJS_TEMPLATE_ID
-  const publicKey = process.env.EMAILJS_PUBLIC_KEY
-  const privateKey = process.env.EMAILJS_PRIVATE_KEY
-  if (!serviceId || !templateId || !publicKey || !privateKey) {
-    return NextResponse.json({ error: 'Appointment requests are temporarily unavailable. Please contact our team by phone or email.' }, { status: 503 })
-  }
-
   try {
-    const emailResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        service_id: serviceId,
-        template_id: templateId,
-        user_id: publicKey,
-        accessToken: privateKey,
-        template_params: {
-          to_email: emailAddress,
-          full_name: fullName,
-          email,
-          phone,
-          contact_method: contactMethod,
-          support_required: supportRequired || 'Not provided',
-          preferred_date: preferredDate || 'Not specified',
-          privacy_consent: 'Yes',
-        },
-      }),
+    await sendWebsiteEmail({
+      subject: 'New Nurse Ability Care appointment request',
+      replyTo: email,
+      text: [
+        'A new appointment request was submitted through the Nurse Ability Care website.',
+        '',
+        `Full name: ${fullName}`,
+        `Email address: ${email}`,
+        `Phone number: ${phone}`,
+        `Preferred contact method: ${contactMethod}`,
+        `Support required: ${supportRequired || 'Not provided'}`,
+        `Preferred date: ${preferredDate || 'Not specified'}`,
+        'Privacy policy consent: Yes',
+      ].join('\n'),
     })
-
-    if (!emailResponse.ok) {
-      console.error('EmailJS appointment delivery failed with status:', emailResponse.status)
-      return NextResponse.json({ error: 'We could not send your request just now. Please try again or contact our team directly.' }, { status: 502 })
-    }
   } catch (error) {
-    console.error('EmailJS appointment delivery failed:', error)
+    if (error instanceof EmailConfigurationError) {
+      return NextResponse.json(
+        { error: 'Email delivery is not configured yet. Please contact our team by phone or email.' },
+        { status: 503 },
+      )
+    }
+    console.error('Appointment request email delivery failed:', error instanceof Error ? error.name : 'Unknown error')
     return NextResponse.json({ error: 'We could not send your request just now. Please try again or contact our team directly.' }, { status: 502 })
   }
 

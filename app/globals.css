@@ -44,7 +44,7 @@ p { color:var(--muted); line-height:1.7; }
 .process { background:#fff; }.process-grid { grid-template-columns:repeat(3,1fr); }.process-step { border-top:2px solid var(--teal); padding-top:20px; }.process-step span { color:var(--teal); font-weight:800; }.process-step h3 { margin-top:22px; }
 .cta { background:linear-gradient(105deg,var(--purple),var(--deep-teal)); padding:65px 0; }.cta-inner { display:flex; align-items:center; justify-content:space-between; gap:30px; }.cta h2,.cta p,.cta .eyebrow { color:#fff; }.cta p:not(.eyebrow) { max-width:600px; margin-bottom:0; color:#e5f5f6; }
 .inner-hero { background:linear-gradient(110deg,var(--lavender),var(--aqua)); padding:85px 0; }.inner-hero h1 { max-width:800px; }.inner-hero .lead { max-width:680px; }.narrow-content { max-width:900px; }.narrow-content > p { font-size:20px; color:var(--ink); }.content-grid { grid-template-columns:1fr 1fr; margin:55px 0; }.content-grid div { border-top:2px solid var(--teal); padding-top:18px; }.content-grid h2 { font-size:25px; }
-.full-services { grid-template-columns:repeat(3,1fr); }.detailed h2 { font-size:23px; margin-top:20px; }.detailed ul { padding-left:20px; color:var(--muted); line-height:1.8; font-size:14px; }.scope-note { display:flex; gap:13px; align-items:flex-start; background:var(--lavender); padding:20px; border-radius:12px; margin-top:28px; }.scope-note svg { color:var(--purple); flex:none; }.scope-note p { margin:0; font-size:14px; }
+.full-services { grid-template-columns:repeat(3,1fr); align-items:start; }.detailed h2 { font-size:21px; margin:16px 0 10px; }.detailed > p { min-height:48px; color:var(--muted); }.detailed ul { padding-left:20px; color:var(--muted); line-height:1.7; font-size:13px; }.service-details { border-top:1px solid var(--line); margin-top:18px; }.service-details summary { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:13px 0 0; color:var(--deep-teal); font-size:13px; font-weight:700; cursor:pointer; list-style:none; }.service-details summary::-webkit-details-marker { display:none; }.service-details summary span:last-child { color:var(--teal); font-size:19px; transition:transform .2s; }.service-details[open] summary span:last-child { transform:rotate(45deg); }.detailed .service-details ul { margin:10px 0 0; }.detailed .text-link { font-size:13px; }.scope-note { display:flex; gap:13px; align-items:flex-start; background:var(--lavender); padding:20px; border-radius:12px; margin-top:28px; }.scope-note svg { color:var(--purple); flex:none; }.scope-note p { margin:0; font-size:14px; }
 .form-card { background:#fff; padding:30px; border-radius:16px; box-shadow:0 12px 40px #542b5b14; border:1px solid #eee5f0; }.form-card h2 { font-size:28px; }.form-card label,.modal label { display:flex; flex-direction:column; gap:7px; color:var(--deep-purple); font-size:13px; font-weight:700; margin-top:16px; }.form-card input,.form-card select,.form-card textarea,.modal input,.modal select,.modal textarea { width:100%; border:1px solid #d4dbe0; border-radius:8px; padding:12px; color:var(--ink); background:#fff; outline:none; }.form-card input:focus,.form-card select:focus,.form-card textarea:focus,.modal input:focus,.modal select:focus,.modal textarea:focus { border-color:var(--teal); box-shadow:0 0 0 3px #159baa22; }.form-card .button { margin-top:20px; }.optional { color:var(--muted); font-weight:400; }.check-label { flex-direction:row!important; align-items:center; font-weight:400!important; }.check-label input { width:auto; accent-color:var(--purple); }.check-list p { display:flex; align-items:center; gap:10px; color:var(--ink); }.check-list svg { width:18px; color:var(--teal); }
 .contact-details { display:flex; flex-direction:column; gap:16px; margin-top:28px; }.contact-details a { color:var(--deep-purple); font-weight:700; display:flex; gap:12px; align-items:center; }.contact-details svg { color:var(--teal); width:19px; }
 .footer { background:var(--deep-purple); color:white; padding-top:70px; }.footer-grid { display:grid; grid-template-columns:1.4fr .7fr 1fr; gap:60px; padding-bottom:55px; }.footer-logo { width:255px; background:#fff; padding:8px; }.footer-copy { color:#dfd2e2; max-width:330px; font-size:14px; }.ndis-logo { width:140px; margin-top:12px; }.footer h3 { color:#fff; font-size:16px; }.footer-links { display:flex; flex-direction:column; gap:13px; color:#e0d6e3; font-size:14px; }.footer-action { color:#8bd5dc; display:flex; align-items:center; gap:8px; }.copyright { border-top:1px solid #ffffff24; padding:22px 20px; text-align:center; color:#d8cddd; font-size:12px; }.copyright span { margin-left:12px; }.copyright a:hover,.developer a:hover { color:#8bd5dc; }.developer { text-align:center; border-top:1px solid #ffffff12; padding:18px 20px 25px; color:#d8cddd; font-size:13px; }.developer span { color:#d68adf; }.developer a { color:#8bd5dc; text-decoration:underline; text-underline-offset:3px; }
@@ -85,15 +85,19 @@ body { font-family:'Oxygen', Arial, Helvetica, sans-serif; }
 .appointment-form-step .button:disabled { opacity:.7; cursor:wait; }
 .form-error { color:#a12635; background:#fff0f1; padding:11px 13px; border-radius:8px; font-size:13px; }
 .faq { background:#f5eff7; }
-.faq-inner { display:grid; grid-template-columns:.8fr 1.2fr; gap:65px; align-items:start; }
-.faq-inner .section-heading { margin:0; }
-.faq-list { display:flex; flex-direction:column; gap:12px; }
+.faq-heading { max-width:720px; margin:0 auto 38px; text-align:center; }
+.faq-heading h2 { margin:0; }
+.faq-heading > p:not(.eyebrow) { margin:12px 0 20px; }
+.faq-heading .button { margin:0; }
+.faq-list { display:flex; flex-direction:column; gap:12px; max-width:920px; margin:0 auto; }
 .faq-item { background:#fff; border:1px solid #eaddec; border-radius:12px; padding:19px 21px; }
 .faq-item summary { display:flex; align-items:center; justify-content:space-between; gap:18px; color:var(--deep-purple); font-weight:700; cursor:pointer; list-style:none; }
 .faq-item summary::-webkit-details-marker { display:none; }
 .faq-item summary span { color:var(--teal); font-size:22px; transition:transform .2s; }
 .faq-item[open] summary span { transform:rotate(45deg); }
 .faq-item p { margin:13px 0 0; font-size:14px; }
+.faq-item ul { margin:12px 0 0; padding-left:22px; font-size:14px; line-height:1.75; }
+.faq-item li + li { margin-top:7px; }
 .contact-grid { grid-template-columns:1.2fr .8fr; gap:78px; align-items:start; }
 .contact-copy { padding:18px 0; }
 .contact-copy > p:not(.eyebrow) { max-width:620px; font-size:19px; line-height:1.8; }
@@ -101,6 +105,15 @@ body { font-family:'Oxygen', Arial, Helvetica, sans-serif; }
 .contact-form { padding:25px; }
 .contact-form label { margin-top:12px; }
 .contact-form h2 { font-size:25px; }
+.privacy-consent > a { display:inline-block; margin:5px 0 0 25px; color:var(--deep-teal); text-decoration:underline; text-underline-offset:3px; font-size:12px; }
+.contact-form button:disabled { opacity:.7; cursor:wait; }
+.form-feedback { padding:12px 14px; border-radius:8px; font-size:14px; }
+.form-feedback.success { color:#176344; background:#e9f7ef; }
+.form-feedback.error { color:#8b2632; background:#fff0f1; }
+.services-information { display:grid; grid-template-columns:repeat(2,1fr); gap:22px; margin-top:42px; }
+.services-information > div { padding:24px; background:#f5eff7; border-radius:14px; }
+.services-information h2 { margin:0 0 10px; font-size:21px; }
+.services-information p { margin:0; font-size:14px; }
 .privacy-note { font-size:12px; margin:7px 0 0; }
 .privacy-note a,.privacy-content a { color:var(--deep-teal); text-decoration:underline; text-underline-offset:3px; }
 .privacy-content h2 { font-size:28px; margin-top:30px; }
@@ -109,7 +122,8 @@ body { font-family:'Oxygen', Arial, Helvetica, sans-serif; }
 @media (max-width:800px) {
   .brand img { width:190px; }
   .footer-grid { grid-template-columns:repeat(2,1fr); gap:35px; }
-  .faq-inner,.contact-grid { grid-template-columns:1fr; gap:35px; }
+  .contact-grid { grid-template-columns:1fr; gap:35px; }
+  .services-information { grid-template-columns:1fr; }
   .contact-copy { padding:0; }
   .appointment-intro-content { grid-template-columns:.75fr 1.25fr; }
   .appointment-intro-copy { padding:42px 26px 28px; }

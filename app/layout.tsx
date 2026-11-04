@@ -5,6 +5,10 @@ export const metadata: Metadata = {
   title: 'Nurse Ability Care | Empowering care, enabling life',
   description: 'Person-centred nursing and NDIS support services built around your goals, choices and independence.',
   generator: 'v0.app',
+  icons: {
+    icon: '/Favicon.png',
+    apple: '/Favicon.png',
+  },
 }
 
 export const viewport: Viewport = { colorScheme: 'light', themeColor: '#713B78' }
