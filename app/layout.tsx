@@ -6,8 +6,8 @@ export const metadata: Metadata = {
   description: 'Person-centred nursing and NDIS support services built around your goals, choices and independence.',
   generator: 'v0.app',
   icons: {
-    icon: '/Favicon.png',
-    apple: '/Favicon.png',
+    icon: '/favicon.png',
+    apple: '/favicon.png',
   },
 }
 
