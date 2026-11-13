@@ -200,7 +200,15 @@ export function HomePage() {
 
 export function ServicesOverview() { return <section className="services section"><div className="container"><div className="section-heading"><p className="eyebrow">How we can help</p><h2>Support for everyday living.</h2><p>Individualised services designed to help you feel more confident, connected and in control.</p></div><div className="service-grid">{services.slice(0,6).map(([title,text],i) => <Link href="/services" className="service-card" key={title}><span className="service-number">0{i+1}</span><h3>{title}</h3><p>{text}</p><span className="card-arrow"><ArrowRight /></span></Link>)}</div><Link className="button button-secondary centered-button" href="/services">View all services <ArrowRight /></Link></div></section> }
 
-export function InnerPage({ type }: { type: 'about'|'services'|'careers'|'contact' }) {
+export type ContactSubmissionStatus = 'sent' | 'invalid' | 'failed' | 'not-configured'
+
+export function InnerPage({
+  type,
+  initialSubmission,
+}: {
+  type: 'about'|'services'|'careers'|'contact'
+  initialSubmission?: ContactSubmissionStatus
+}) {
   const [appointment, setAppointment] = useState(false)
   const titles = {
     about: ['Compassionate care. Clinical expertise. Individual choice.', 'Supporting people to build independence, strengthen their capabilities, and live life on their own terms.'],
@@ -232,7 +240,7 @@ export function InnerPage({ type }: { type: 'about'|'services'|'careers'|'contac
       <div className="scope-note"><ShieldCheck /><p>We currently welcome self-managed and plan-managed NDIS participants for supports within our service scope. Availability depends on assessed needs, worker competencies, clinical arrangements and capacity. We are not currently accepting NDIA-managed funding. Contact us to confirm suitability and availability.</p></div>
     </div></section>}
     {type === 'careers' && <CareersContent />}
-    {type === 'contact' && <ContactContent />}
+    {type === 'contact' && <ContactContent initialSubmission={initialSubmission} />}
     {appointment && <AppointmentModal onClose={() => setAppointment(false)} />}
   </main></PageShell>
 }
@@ -250,16 +258,29 @@ function AboutContent({ onAppointment }: { onAppointment: () => void }) {
   </div></section>
 }
 function CareersContent() { return <section className="section"><div className="container careers-invitation"><div className="careers-copy"><p className="eyebrow">Work with purpose</p><h2>Bring your care, communication and curiosity.</h2><p>We value people who are compassionate, reliable, collaborative and committed to participant choice. If you share those values, we would love to hear from you.</p><div className="check-list"><p><Check /> Compassion and integrity</p><p><Check /> Clear communication and teamwork</p><p><Check /> Relevant experience and qualifications</p><p><Check /> A commitment to learning</p></div><a className="button button-primary careers-join" href={whatsapp} target="_blank" rel="noopener noreferrer">Join Now <ArrowRight /></a></div></div></section> }
-function ContactContent() {
+function ContactContent({ initialSubmission }: { initialSubmission?: ContactSubmissionStatus }) {
   const [isSending, setIsSending] = useState(false)
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const isSendingRef = useRef(false)
+  const [feedback, setFeedback] = useState<{ type: 'error'; message: string } | null>(() => {
+    if (!initialSubmission || initialSubmission === 'sent') return null
+    const messages: Record<Exclude<ContactSubmissionStatus, 'sent'>, string> = {
+      invalid: 'Please check the required details and privacy consent.',
+      failed: 'We could not send your enquiry just now. Please try again or contact our team directly.',
+      'not-configured': 'Email delivery is not configured yet. Please contact our team by phone or email.',
+    }
+    return { type: 'error', message: messages[initialSubmission] }
+  })
+  const [confirmationOpen, setConfirmationOpen] = useState(initialSubmission === 'sent')
 
   async function submitEnquiry(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (isSendingRef.current) return
+    isSendingRef.current = true
     const form = event.currentTarget
     const formData = new FormData(form)
     setIsSending(true)
     setFeedback(null)
+    setConfirmationOpen(false)
 
     try {
       const response = await fetch('/api/contact', {
@@ -271,6 +292,7 @@ function ContactContent() {
           phone: formData.get('phone'),
           serviceOfInterest: formData.get('serviceOfInterest'),
           message: formData.get('message'),
+          website: formData.get('website'),
           privacyConsent: formData.get('privacyConsent') === 'on',
         }),
       })
@@ -283,18 +305,19 @@ function ContactContent() {
       if (!response.ok) throw new Error(errorMessage)
 
       form.reset()
-      setFeedback({ type: 'success', message: 'Thank you. Your enquiry has been sent to our team.' })
+      setConfirmationOpen(true)
     } catch (error) {
       setFeedback({
         type: 'error',
         message: error instanceof Error ? error.message : 'We could not send your enquiry. Please contact our team directly.',
       })
     } finally {
+      isSendingRef.current = false
       setIsSending(false)
     }
   }
 
-  return <section className="section"><div className="container split-grid contact-grid">
+  return <><section className="section"><div className="container split-grid contact-grid">
     <div className="contact-copy">
       <p className="eyebrow">We’re here to listen</p><h2>Your goals. Your choices. Your future.</h2>
       <p>Get in touch today to begin your journey with us. We’ll work with you to understand your circumstances and explore personalised support.</p>
@@ -304,9 +327,12 @@ function ContactContent() {
         <a href="mailto:admin@nurseabilitycare.com.au"><Mail /> admin@nurseabilitycare.com.au</a>
       </div>
     </div>
-    <form className="form-card contact-form" onSubmit={submitEnquiry} aria-busy={isSending}>
+    <form className="form-card contact-form" action="/api/contact" method="post" onSubmit={submitEnquiry} aria-busy={isSending}>
       <h2>Send an enquiry</h2>
       <label>Full name<input name="fullName" autoComplete="name" required maxLength={120} /></label>
+      <div className="contact-honeypot" aria-hidden="true">
+        <label>Leave this field empty<input name="website" tabIndex={-1} autoComplete="off" /></label>
+      </div>
       <label>Email address<input name="email" autoComplete="email" required type="email" maxLength={254} /></label>
       <label>Phone number<input name="phone" autoComplete="tel" required type="tel" maxLength={30} /></label>
       <label>Service of interest<select name="serviceOfInterest" defaultValue="Not Sure Yet" required>
@@ -323,4 +349,18 @@ function ContactContent() {
       </button>
     </form>
   </div></section>
+  {confirmationOpen && <div className="modal-backdrop" role="presentation" onClick={event => {
+    if (event.target === event.currentTarget) setConfirmationOpen(false)
+  }}>
+    <section className="modal" role="dialog" aria-modal="true" aria-labelledby="contact-confirmation-title">
+      <button className="modal-close" type="button" onClick={() => setConfirmationOpen(false)} aria-label="Close confirmation"><X /></button>
+      <div className="success-state">
+        <div className="success-icon"><Check /></div>
+        <h2 id="contact-confirmation-title">Enquiry sent</h2>
+        <p>Thank you. Your enquiry has been sent to our team, and we’ll be in touch soon.</p>
+        <button className="button button-primary" type="button" onClick={() => setConfirmationOpen(false)}>Close</button>
+      </div>
+    </section>
+  </div>}
+  </>
 }

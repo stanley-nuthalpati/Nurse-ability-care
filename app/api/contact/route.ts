@@ -1,10 +1,21 @@
 import { NextResponse } from 'next/server'
-import { EmailConfigurationError, sendWebsiteEmail } from '@/lib/email'
+import { EmailConfigurationError, sendContactEmails } from '@/lib/email'
 
 export const runtime = 'nodejs'
 
 const maxRequestBytes = 10_000
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const emailPattern =
+  /^[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?$/i
+
+function responseForSubmission(request: Request, message: string, status: number, submission: string) {
+  if (request.headers.get('content-type')?.includes('application/json')) {
+    return NextResponse.json({ error: message }, { status })
+  }
+
+  const url = new URL('/contact', request.url)
+  url.searchParams.set('submission', submission)
+  return NextResponse.redirect(url, 303)
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -17,24 +28,25 @@ function textField(value: unknown, maxLength: number): string | null {
 }
 
 export async function POST(request: Request) {
+  const isJsonRequest = request.headers.get('content-type')?.includes('application/json') ?? false
   const contentLength = Number(request.headers.get('content-length') || 0)
   if (contentLength > maxRequestBytes) {
-    return NextResponse.json({ error: 'Your request is too large.' }, { status: 413 })
+    return responseForSubmission(request, 'Your request is too large.', 413, 'invalid')
   }
 
   let payload: unknown
   try {
     const body = await request.text()
     if (new TextEncoder().encode(body).byteLength > maxRequestBytes) {
-      return NextResponse.json({ error: 'Your request is too large.' }, { status: 413 })
+      return responseForSubmission(request, 'Your request is too large.', 413, 'invalid')
     }
-    payload = JSON.parse(body)
+    payload = isJsonRequest ? JSON.parse(body) : Object.fromEntries(new URLSearchParams(body))
   } catch {
-    return NextResponse.json({ error: 'Please submit a valid enquiry.' }, { status: 400 })
+    return responseForSubmission(request, 'Please submit a valid enquiry.', 400, 'invalid')
   }
 
   if (!isRecord(payload)) {
-    return NextResponse.json({ error: 'Please submit a valid enquiry.' }, { status: 400 })
+    return responseForSubmission(request, 'Please submit a valid enquiry.', 400, 'invalid')
   }
 
   const fullName = textField(payload.fullName, 120)
@@ -42,52 +54,72 @@ export async function POST(request: Request) {
   const phone = textField(payload.phone, 30)
   const serviceOfInterest = textField(payload.serviceOfInterest, 120)
   const message = textField(payload.message, 4000)
+  const website = textField(payload.website ?? '', 200)
   const phoneDigits = phone?.replace(/\D/g, '') ?? ''
+
+  if (website === null) {
+    return responseForSubmission(request, 'Please submit a valid enquiry.', 400, 'invalid')
+  }
+
+  if (website) {
+    if (!isJsonRequest) {
+      const url = new URL('/contact', request.url)
+      url.searchParams.set('submission', 'sent')
+      return NextResponse.redirect(url, 303)
+    }
+    return NextResponse.json({ ok: true })
+  }
 
   if (
     !fullName ||
     !email ||
     !emailPattern.test(email) ||
     !phone ||
+    !/^\+?[0-9 ().-]+$/.test(phone) ||
     phoneDigits.length < 8 ||
     phoneDigits.length > 15 ||
     !serviceOfInterest ||
     !message ||
-    payload.privacyConsent !== true
+    (payload.privacyConsent !== true && payload.privacyConsent !== 'on')
   ) {
-    return NextResponse.json({ error: 'Please check the required details and privacy consent.' }, { status: 400 })
+    return responseForSubmission(
+      request,
+      'Please check the required details and privacy consent.',
+      400,
+      'invalid',
+    )
   }
 
   try {
-    await sendWebsiteEmail({
-      subject: 'New Nurse Ability Care website enquiry',
-      replyTo: email,
-      text: [
-        'A new enquiry was submitted through the Nurse Ability Care website.',
-        '',
-        `Full name: ${fullName}`,
-        `Email address: ${email}`,
-        `Phone number: ${phone}`,
-        `Service of interest: ${serviceOfInterest}`,
-        '',
-        'Message:',
-        message,
-        '',
-        'Privacy policy consent: Yes',
-      ].join('\n'),
+    await sendContactEmails({
+      fullName,
+      email,
+      phone,
+      serviceOfInterest,
+      message,
     })
   } catch (error) {
     if (error instanceof EmailConfigurationError) {
-      return NextResponse.json(
-        { error: 'Email delivery is not configured yet. Please contact our team by phone or email.' },
-        { status: 503 },
+      return responseForSubmission(
+        request,
+        'Email delivery is not configured yet. Please contact our team by phone or email.',
+        503,
+        'not-configured',
       )
     }
     console.error('Contact enquiry email delivery failed:', error instanceof Error ? error.name : 'Unknown error')
-    return NextResponse.json(
-      { error: 'We could not send your enquiry just now. Please try again or contact our team directly.' },
-      { status: 502 },
+    return responseForSubmission(
+      request,
+      'We could not send your enquiry just now. Please try again or contact our team directly.',
+      502,
+      'failed',
     )
+  }
+
+  if (!isJsonRequest) {
+    const url = new URL('/contact', request.url)
+    url.searchParams.set('submission', 'sent')
+    return NextResponse.redirect(url, 303)
   }
 
   return NextResponse.json({ ok: true })

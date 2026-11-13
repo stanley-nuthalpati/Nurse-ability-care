@@ -104,6 +104,7 @@ body { font-family:'Oxygen', Arial, Helvetica, sans-serif; }
 .contact-copy h2 { max-width:620px; font-size:clamp(36px,4.5vw,52px); }
 .contact-form { padding:25px; }
 .contact-form label { margin-top:12px; }
+.contact-honeypot { position:absolute; left:-10000px; width:1px; height:1px; overflow:hidden; }
 .contact-form h2 { font-size:25px; }
 .privacy-consent > a { display:inline-block; margin:5px 0 0 25px; color:var(--deep-teal); text-decoration:underline; text-underline-offset:3px; font-size:12px; }
 .contact-form button:disabled { opacity:.7; cursor:wait; }
