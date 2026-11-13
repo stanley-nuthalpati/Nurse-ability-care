@@ -1,7 +1,15 @@
 import nodemailer from 'nodemailer'
+import path from 'node:path'
 
 const businessEmail = 'admin@nurseabilitycare.com.au'
 const businessName = 'Nurse Ability Care'
+const businessPhoneNumbers = [
+  { label: '+61 403 612 209', href: 'tel:+61403612209' },
+  { label: '+61 430 829 992', href: 'tel:+61430829992' },
+]
+const brandLogoFilename = 'Nurse Ability Care Logo.png'
+const brandLogoCid = 'nurse-ability-care-logo'
+const brandLogoPath = path.join(process.cwd(), 'public', brandLogoFilename)
 
 export class EmailConfigurationError extends Error {
   constructor() {
@@ -61,7 +69,7 @@ function escapeHtml(value: string) {
   })
 }
 
-function emailLayout(content: string) {
+function emailLayout(content: string, previewText: string) {
   return `<!doctype html>
 <html lang="en">
   <head>
@@ -69,20 +77,30 @@ function emailLayout(content: string) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${businessName}</title>
   </head>
-  <body style="margin:0;padding:0;background:#f2f7f6;font-family:Arial,Helvetica,sans-serif;color:#263b3b;">
-    <div style="padding:24px 12px;">
-      <div style="max-width:640px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
-        <div style="padding:24px 32px;background:#075e5a;color:#ffffff;">
-          <p style="margin:0;font-size:13px;letter-spacing:1px;text-transform:uppercase;">${businessName}</p>
-        </div>
-        <div style="padding:32px;">${content}</div>
-        <div style="padding:20px 32px;background:#f5f8f7;color:#526565;font-size:13px;line-height:1.6;">
-          <strong>${businessName}</strong><br>
-          <a href="mailto:${businessEmail}" style="color:#075e5a;">${businessEmail}</a><br>
-          <a href="https://www.nurseabilitycare.com.au/" style="color:#075e5a;">www.nurseabilitycare.com.au</a>
-        </div>
-      </div>
-    </div>
+  <body style="margin:0;padding:0;background-color:#f5eff7;font-family:Arial,Helvetica,sans-serif;color:#263238;">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">${escapeHtml(previewText)}</div>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f5eff7;">
+      <tr><td align="center" style="padding:28px 12px;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:640px;background-color:#ffffff;border-radius:14px;overflow:hidden;">
+          <tr><td height="7" style="height:7px;background-color:#713b78;font-size:0;line-height:0;">&nbsp;</td></tr>
+          <tr><td align="center" style="padding:24px 28px 20px;background-color:#ffffff;">
+            <img src="cid:${brandLogoCid}" width="300" alt="${businessName} — Empowering care, enabling life" style="display:block;width:100%;max-width:300px;height:auto;border:0;">
+          </td></tr>
+          <tr><td style="padding:0 32px;"><div style="height:1px;background-color:#e5e7eb;font-size:0;line-height:0;">&nbsp;</div></td></tr>
+          <tr><td style="padding:30px 32px 34px;">${content}</td></tr>
+          <tr><td style="padding:26px 32px;background-color:#542b5b;color:#ffffff;">
+            <p style="margin:0 0 12px;font-size:16px;line-height:1.4;font-weight:bold;color:#ffffff;">${businessName}</p>
+            <p style="margin:0 0 14px;font-size:13px;line-height:1.7;color:#eee5f0;">We’re here to help. Contact our friendly team:</p>
+            ${businessPhoneNumbers.map(({ label, href }) => `<p style="margin:0 0 8px;font-size:14px;line-height:1.6;"><a href="${href}" style="color:#8bd5dc;text-decoration:none;">${label}</a></p>`).join('')}
+            <p style="margin:0 0 8px;font-size:13px;line-height:1.6;"><a href="mailto:${businessEmail}" style="color:#8bd5dc;text-decoration:none;">${businessEmail}</a></p>
+            <p style="margin:0;font-size:13px;line-height:1.6;"><a href="https://www.nurseabilitycare.com.au/" style="color:#8bd5dc;text-decoration:none;">www.nurseabilitycare.com.au</a></p>
+          </td></tr>
+          <tr><td align="center" style="padding:14px 24px;background-color:#47244d;color:#d8cddd;font-size:11px;line-height:1.5;">
+            &copy; ${new Date().getFullYear()} ${businessName}. All rights reserved.
+          </td></tr>
+        </table>
+      </td></tr>
+    </table>
   </body>
 </html>`
 }
@@ -115,23 +133,40 @@ function enquiryHtml({
     )
     .join('')
 
-  return emailLayout(`<h1 style="margin:0 0 12px;color:#075e5a;font-size:25px;line-height:1.3;">New website enquiry</h1>
-    <p style="margin:0 0 24px;font-size:15px;line-height:1.6;">A visitor has submitted the Contact Us form.</p>
+  return emailLayout(`<p style="margin:0 0 8px;color:#159baa;font-size:12px;line-height:1.4;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">Website contact form</p>
+    <h1 style="margin:0 0 12px;color:#542b5b;font-size:25px;line-height:1.3;">New website enquiry</h1>
+    <p style="margin:0 0 24px;color:#5f6873;font-size:15px;line-height:1.7;">A visitor has submitted a new enquiry. You can reply directly to them using the Reply-To address.</p>
     <table role="presentation" style="width:100%;border-collapse:collapse;">${rows}</table>
-    <h2 style="margin:24px 0 10px;color:#075e5a;font-size:18px;">Message</h2>
-    <div style="padding:16px;background:#f5f8f7;border-radius:8px;font-size:14px;line-height:1.7;white-space:pre-wrap;">${escapeHtml(message)}</div>`)
+    <h2 style="margin:26px 0 10px;color:#542b5b;font-size:18px;">Message</h2>
+    <div style="padding:16px;background:#f5eff7;border-left:4px solid #159baa;border-radius:6px;color:#263238;font-size:14px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;">${escapeHtml(message)}</div>`,
+    `New website enquiry from ${fullName} for Nurse Ability Care.`,
+  )
 }
 
 function acknowledgementHtml(fullName: string) {
-  return emailLayout(`<h1 style="margin:0 0 18px;color:#075e5a;font-size:25px;line-height:1.3;">Thank you for contacting us</h1>
-    <p style="margin:0 0 14px;font-size:16px;line-height:1.7;">Dear ${escapeHtml(fullName)},</p>
-    <p style="margin:0 0 14px;font-size:15px;line-height:1.7;">Thank you for contacting Nurse Ability Care. We have successfully received your enquiry, and our team appreciates your interest in our services.</p>
-    <p style="margin:0 0 14px;font-size:15px;line-height:1.7;">One of our team members will review your request and get back to you as soon as possible.</p>
-    <p style="margin:0 0 14px;font-size:15px;line-height:1.7;">If your enquiry is urgent, please contact us directly at <a href="mailto:${businessEmail}" style="color:#075e5a;">${businessEmail}</a>.</p>
-    <p style="margin:0 0 14px;font-size:15px;line-height:1.7;">Thank you for considering Nurse Ability Care.</p>
-    <p style="margin:24px 0 0;font-size:15px;line-height:1.7;">Kind regards,<br><strong>${businessName} Team</strong></p>`)
+  return emailLayout(`<p style="margin:0 0 8px;color:#159baa;font-size:12px;line-height:1.4;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">Enquiry received</p>
+    <h1 style="margin:0 0 20px;color:#542b5b;font-size:26px;line-height:1.3;">Thank you for getting in touch</h1>
+    <p style="margin:0 0 14px;color:#263238;font-size:16px;line-height:1.7;">Dear ${escapeHtml(fullName)},</p>
+    <p style="margin:0 0 14px;color:#5f6873;font-size:15px;line-height:1.8;">Thank you for contacting Nurse Ability Care. We have successfully received your enquiry, and our team appreciates your interest in our services.</p>
+    <p style="margin:0 0 14px;color:#5f6873;font-size:15px;line-height:1.8;">One of our team members will review your request and get back to you as soon as possible.</p>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:22px 0;background-color:#eaf7f8;border-radius:8px;">
+      <tr><td style="padding:16px 18px;border-left:4px solid #159baa;">
+        <p style="margin:0;color:#263238;font-size:14px;line-height:1.7;"><strong style="color:#542b5b;">Need urgent help?</strong><br>If your enquiry is urgent, contact our team using the phone numbers in the footer.</p>
+      </td></tr>
+    </table>
+    <p style="margin:0 0 14px;color:#5f6873;font-size:15px;line-height:1.8;">Thank you for considering Nurse Ability Care. We look forward to speaking with you.</p>
+    <p style="margin:24px 0 0;color:#263238;font-size:15px;line-height:1.8;">Kind regards,<br><strong style="color:#542b5b;">${businessName} Team</strong></p>`,
+    `Thanks ${fullName}, your enquiry has been received by Nurse Ability Care.`,
+  )
 }
 
+function brandLogoAttachment() {
+  return {
+    filename: brandLogoFilename,
+    path: brandLogoPath,
+    cid: brandLogoCid,
+  }
+}
 export async function sendWebsiteEmail({
   subject,
   replyTo,
@@ -185,6 +220,7 @@ export async function sendContactEmails({
     subject: 'New Website Enquiry – Nurse Ability Care',
     text: enquiryText,
     html: enquiryHtml({ fullName, email, phone, serviceOfInterest, message }),
+    attachments: [brandLogoAttachment()],
   })
 
   try {
@@ -212,6 +248,7 @@ export async function sendContactEmails({
         'https://www.nurseabilitycare.com.au/',
       ].join('\n'),
       html: acknowledgementHtml(fullName),
+      attachments: [brandLogoAttachment()],
     })
   } catch (error) {
     console.error(
