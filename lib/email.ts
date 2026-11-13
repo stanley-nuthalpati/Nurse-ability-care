@@ -151,7 +151,7 @@ function acknowledgementHtml(fullName: string) {
     <p style="margin:0 0 14px;color:#5f6873;font-size:15px;line-height:1.8;">One of our team members will review your request and get back to you as soon as possible.</p>
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:22px 0;background-color:#eaf7f8;border-radius:8px;">
       <tr><td style="padding:16px 18px;border-left:4px solid #159baa;">
-        <p style="margin:0;color:#263238;font-size:14px;line-height:1.7;"><strong style="color:#542b5b;">Need urgent help?</strong><br>If your enquiry is urgent, contact our team using the phone numbers in the footer.</p>
+        <p style="margin:0;color:#263238;font-size:14px;line-height:1.7;"><strong style="color:#542b5b;">Need urgent help?</strong><br>If your enquiry is urgent, contact our team using the phone numbers.</p>
       </td></tr>
     </table>
     <p style="margin:0 0 14px;color:#5f6873;font-size:15px;line-height:1.8;">Thank you for considering Nurse Ability Care. We look forward to speaking with you.</p>
